@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="content">
+        <div class="header">
+            <h1>Taskify</h1>
+            <span id="switch">&#8646;</span>
+        </div>
+        <div class="sidebar">
+            <ul class="sidelist">
+                <li id="all">All</li>
+                <li id="today">Today</li>
+                <li>
+                    Projects
+                    <ul class="projects"></ul>
+                </li>
+            </ul>
+            <form class="projectform">
+                <label for="project">Project:</label>
+                <input type="text" id="project" name="project" />
+                <button id="submit" type="submit" form="projectform">
+                    Add a Project
+                </button>
+            </form>
+        </div>
+        <div class="main">
+            <div class="todo"></div>
+            <button id="open-modal">Add a Task</button>
+        </div>
+    </div>
+    <div id="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title"></h2>
+            <form class="taskform">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" />
+                <label for="desc">Description:</label>
+                <textarea id="desc" name="desc"> </textarea>
+                <label for="date">Due date:</label>
+                <input type="date" id="date" name="date" placeholder="yyyy-MM-dd" />
+                <label for="priority">Priority:</label>
+                <select id="priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+                <label for="project">Project:</label>
+                <select id="select-project" name="project">
+                    <option disabled selected value> Select a project </option>
+                </select>
+                <button id="submit-task" type="submit" form="taskform">Add Task</button>
+                <button id="edit-task" type="submit" form="taskform">Edit Task</button>
+            </form>
+        </div>
+        
+    </div>
+</body>
+<script src="main.js"></script>
+
+</html>
