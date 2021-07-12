@@ -40,7 +40,12 @@ html {
   margin: 0;
   padding: 1rem 1rem;
   color: #434343;
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  word-wrap: break-word;
+}
+li{
+    padding: 0.2em 0px;
 }
 .projects {
   list-style-type: none;

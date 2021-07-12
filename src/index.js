@@ -1,8 +1,19 @@
 import './style.css';
 import { format, isToday, parseISO, isValid } from 'date-fns'
 
-let projectList = JSON.parse(localStorage.getItem('projectList')) || [];
-let taskList = JSON.parse(localStorage.getItem('taskList')) || [];
+const LS = (() => {
+    let projectList = JSON.parse(localStorage.getItem('projectList')) || [];
+    let taskList = JSON.parse(localStorage.getItem('taskList')) || [];
+    const setList = (listname, list) => {
+        localStorage.setItem(`${listname}`, JSON.stringify(list));
+    }
+    return {
+        projectList,
+        taskList,
+        setList
+    }
+})()
+
 
 const Task = (title, description, dueDate, priority, complete, project) => {
     return { title, description, dueDate, priority, complete, project };
@@ -132,6 +143,10 @@ const manipulateDOM = (() => {
 const eventListeners = (() => {
     const modal = document.getElementById("modal");
     const close = document.querySelector(".close");
+    const p = document.getElementById("priority");
+    const pr = document.getElementById("select-project");
+    let currentProject = false;
+    let checkingDate = false;
 
     const checkTheBox = (checkbox, title, task) => {
         checkbox.addEventListener("click", function () {
@@ -144,26 +159,24 @@ const eventListeners = (() => {
         project.addEventListener("click", function () {
             manipulateDOM.toggleSection();
             loadProgram.showTasks(project.innerText)
+            currentProject = project.innerText;
+            checkingDate = false;
         });
     }
     const editTask = (task, taskTitle, taskDescription, taskDate, taskPriority, taskContent, taskDiv) => {
         taskDiv.addEventListener("dblclick", function () {
             manipulateDOM.defaultEditModal(task);
-            const p = document.getElementById("priority");
-            const pr = document.getElementById("select-project");
             manipulateDOM.defaultOption(task.priority, p);
             manipulateDOM.defaultOption(task.project, pr);
-            submitEdit(task, taskTitle, taskDescription, taskDate, taskPriority, taskContent);
+            _submitEdit(task, taskTitle, taskDescription, taskDate, taskPriority, taskContent);
         });
     }
-    const submitEdit = (task, taskTitle, taskDescription, taskDate, taskPriority, taskContent) => {
+    const _submitEdit = (task, taskTitle, taskDescription, taskDate, taskPriority, taskContent) => {
         document.getElementById("edit-task").addEventListener("click", function (e) {
             e.preventDefault();
             const title = document.getElementById("title").value;
             const desc = document.getElementById("desc").value;
             const date = document.getElementById("date").value;
-            const p = document.getElementById("priority");
-            const pr = document.getElementById("select-project");
             const priority = p.options[p.selectedIndex].value;
             const project = pr.options[pr.selectedIndex].value;
             manipulateLogic.editInfo(task, title, desc, date, priority, project);
@@ -185,9 +198,8 @@ const eventListeners = (() => {
     document.getElementById("submit").addEventListener("click", function (e) {
         e.preventDefault();
         let project = document.getElementById("project");
-        const select = document.getElementById("select-project");
         if (project.value) {
-            manipulateDOM.addProject(project.value, select);
+            manipulateDOM.addProject(project.value, pr);
             manipulateLogic.addProject(project.value);
             project.value = "";
         }
@@ -197,12 +209,12 @@ const eventListeners = (() => {
         const title = document.getElementById("title").value;
         const desc = document.getElementById("desc").value;
         const date = document.getElementById("date").value;
-        const p = document.getElementById("priority");
         const priority = p.options[p.selectedIndex].value;
-        const pr = document.getElementById("select-project");
         const project = pr.options[pr.selectedIndex].value;
         const task = manipulateLogic.addTask(title, desc, date, priority, project);
-        manipulateDOM.addTask(task);
+        if ((checkingDate && isToday(parseISO(date))) || currentProject === project || (!project && !currentProject)) {
+            manipulateDOM.addTask(task);
+        }
     });
     document.getElementById("open-modal").onclick = function () {
         modal.style.display = "flex";
@@ -219,10 +231,13 @@ const eventListeners = (() => {
         manipulateDOM.closeModal();
     }
     document.getElementById("all").addEventListener("click", function () {
+        currentProject = false;
+        checkingDate = false;
         manipulateDOM.toggleSection();
         loadProgram.showTasks(false);
     });
     document.getElementById("today").addEventListener("click", function () {
+        checkingDate = true;
         manipulateDOM.toggleSection();
         loadProgram.filterByDate();
     });
@@ -240,19 +255,21 @@ const eventListeners = (() => {
 })();
 
 const manipulateLogic = (() => {
+    let taskList = LS.taskList;
+    let projectList = LS.projectList;
     const addProject = (project) => {
-        projectList.push(project);
-        localStorage.setItem("projectList", JSON.stringify(projectList));
+        projectList.push(project)
+        LS.setList("projectList", projectList);
     }
     const addTask = (title, desc, date, priority, project) => {
         const newTask = Task(title, desc, date, priority, false, project);
-        taskList.push(newTask);
-        localStorage.setItem("taskList", JSON.stringify(taskList));
+        taskList.push(newTask)
+        LS.setList("taskList", taskList);
         return newTask;
     }
     const checkedBox = (task) => {
         task.complete = task.complete ? false : true;
-        localStorage.setItem("taskList", JSON.stringify(taskList));
+        LS.setList("taskList", taskList);
     }
     const editInfo = (task, title, desc, date, priority, project) => {
         task.title = title;
@@ -260,12 +277,12 @@ const manipulateLogic = (() => {
         task.dueDate = date;
         task.priority = priority;
         task.project = project;
-        localStorage.setItem("taskList", JSON.stringify(taskList));
+        LS.setList("taskList", taskList);
     }
     const deleteTask = (task) => {
         const index = taskList.findIndex((itask) => itask == task);
-        taskList.splice(index, 1);
-        localStorage.setItem("taskList", JSON.stringify(taskList));
+        taskList.splice(index, 1)
+        LS.setList("taskList", taskList);
     }
     return {
         addProject,
@@ -277,6 +294,8 @@ const manipulateLogic = (() => {
 })();
 
 let loadProgram = (() => {
+    let taskList = LS.taskList;
+    let projectList = LS.projectList;
     //loading stored projects
     (function () {
         const select = document.getElementById("select-project");
@@ -304,3 +323,4 @@ let loadProgram = (() => {
         filterByDate
     }
 })();
+
